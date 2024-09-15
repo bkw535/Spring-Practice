@@ -1,5 +1,6 @@
 package com.example.simple_board.post.service;
 
+import com.example.simple_board.board.db.BoardRepository;
 import com.example.simple_board.post.db.PostEntity;
 import com.example.simple_board.post.db.PostRepository;
 import com.example.simple_board.post.model.PostRequest;
@@ -15,13 +16,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
+    private final BoardRepository boardRepository;
     private final ReplyService replyService;
 
     public PostEntity create(
             PostRequest postRequest
     ){
+        var boardEntity = boardRepository.findById(postRequest.getBoardId()).get();
+
+
         var entity = PostEntity.builder()
-                .boardId(1L)    // 임시 고정
+                .board(boardEntity)    // 임시 고정
                 .userName(postRequest.getUserName())
                 .password(postRequest.getPassword())
                 .email(postRequest.getEmail())
@@ -66,7 +71,7 @@ public class PostService {
         postRepository.findById(postViewRequest.getPostId())
                 .map(it -> {
                     // entity 존재 확인
-                    if (!it.getBoardId().equals(postViewRequest.getPassword())) {
+                    if (!it.getPassword().equals(postViewRequest.getPassword())) {
                         var format = "패스워드가 맞지 않습니다 %s vs %s";
                         throw new RuntimeException(String.format(format, it.getPassword(), postViewRequest.getPassword()));
                     }
