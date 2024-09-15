@@ -4,6 +4,7 @@ import com.example.simple_board.post.db.PostEntity;
 import com.example.simple_board.post.db.PostRepository;
 import com.example.simple_board.post.model.PostRequest;
 import com.example.simple_board.post.model.PostViewRequest;
+import com.example.simple_board.reply.service.ReplyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
+    private final ReplyService replyService;
 
     public PostEntity create(
             PostRequest postRequest
@@ -39,10 +41,15 @@ public class PostService {
         return postRepository.findFirstByIdAndStatusOrderByIdDesc(postViewRequest.getPostId(), "REGISTERD")
                 .map(it -> {
                     // entity 존재 확인
-                    if (!it.getBoardId().equals(postViewRequest.getPassword())) {
+                    if (!it.getPassword().equals(postViewRequest.getPassword())) {
                         var format = "패스워드가 맞지 않습니다 %s vs %s";
                         throw new RuntimeException(String.format(format, it.getPassword(), postViewRequest.getPassword()));
                     }
+
+                    // 답변 글도 같이 적용
+                    var replyList = replyService.findAllByPostId(it.getId());
+                    it.setReplyList(replyList);
+
                     return it;
                 }).orElseThrow(
                         () -> {
