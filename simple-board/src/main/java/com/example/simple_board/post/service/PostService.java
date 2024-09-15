@@ -3,10 +3,12 @@ package com.example.simple_board.post.service;
 import com.example.simple_board.post.db.PostEntity;
 import com.example.simple_board.post.db.PostRepository;
 import com.example.simple_board.post.model.PostRequest;
+import com.example.simple_board.post.model.PostViewRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,5 +29,47 @@ public class PostService {
                 .postedAt(LocalDateTime.now())
                 .build();
         return postRepository.save(entity);
+    }
+
+    /*
+    게시글이 있는가?
+    비밀번호가 있는가?
+     */
+    public PostEntity view(PostViewRequest postViewRequest) {
+        return postRepository.findFirstByIdAndStatusOrderByIdDesc(postViewRequest.getPostId(), "REGISTERD")
+                .map(it -> {
+                    // entity 존재 확인
+                    if (!it.getBoardId().equals(postViewRequest.getPassword())) {
+                        var format = "패스워드가 맞지 않습니다 %s vs %s";
+                        throw new RuntimeException(String.format(format, it.getPassword(), postViewRequest.getPassword()));
+                    }
+                    return it;
+                }).orElseThrow(
+                        () -> {
+                            return new RuntimeException("해당 게시글이 존재하지 않습니다 : "+postViewRequest.getPostId());
+                        }
+                );
+    }
+
+    public List<PostEntity> all() {
+        return postRepository.findAll();
+    }
+
+    public void delete(PostViewRequest postViewRequest) {
+        postRepository.findById(postViewRequest.getPostId())
+                .map(it -> {
+                    // entity 존재 확인
+                    if (!it.getBoardId().equals(postViewRequest.getPassword())) {
+                        var format = "패스워드가 맞지 않습니다 %s vs %s";
+                        throw new RuntimeException(String.format(format, it.getPassword(), postViewRequest.getPassword()));
+                    }
+                    it.setStatus("UNREGISTERD");
+                    postRepository.save(it);
+                    return it;
+                }).orElseThrow(
+                        () -> {
+                            return new RuntimeException("해당 게시글이 존재하지 않습니다 : "+postViewRequest.getPostId());
+                        }
+                );
     }
 }
