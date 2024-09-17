@@ -1,6 +1,8 @@
 package com.example.simple_board.post.db;
 
+import com.example.simple_board.board.db.BoardEntity;
 import com.example.simple_board.reply.db.ReplyEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.Accessors;
@@ -20,7 +22,10 @@ public class PostEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long boardId;
+    @ManyToOne
+    @JsonIgnore
+    @ToString.Exclude
+    private BoardEntity board;  // board+ _id => board_id
     private String userName;
     private String password;
     private String email;
@@ -30,6 +35,10 @@ public class PostEntity {
     private String content;
     private LocalDateTime postedAt;
 
-    @Transient  // 데이터베이스의 컬럼으로 쓰지 않기 위해 설정
+//    @Transient  // 데이터베이스의 컬럼으로 쓰지 않기 위해 설정
+    @OneToMany(
+            mappedBy = "post"
+    )
+    @Builder.Default
     private List<ReplyEntity> replyList = List.of();
 }
