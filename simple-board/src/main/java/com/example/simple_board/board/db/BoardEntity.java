@@ -3,6 +3,8 @@ package com.example.simple_board.board.db;
 import com.example.simple_board.post.db.PostEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.DialectOverride;
+import org.hibernate.annotations.Where;
 
 import java.util.List;
 
@@ -25,5 +27,8 @@ public class BoardEntity {
     @OneToMany(
             mappedBy = "board"
     )
+    @Where(clause = "status = 'REGISTERED")
+    @Builder.Default
+    @OrderBy("id DESC")
     private List<PostEntity> postList = List.of();
 }
